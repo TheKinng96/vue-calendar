@@ -85,12 +85,30 @@ const getWeekNumbers = (year: number, month: number) => {
   let firstWeek = moment(new Date(year, month, 1)).isoWeek();
   let lastWeek = moment(new Date(year, month + 1, 0)).isoWeek();
 
-  let out = [firstWeek];
-  if (firstWeek === 52 || firstWeek === 53) {
+  let lastWeekOfPreviousYear = moment(
+    new Date(year - 1, month - 1, 0)
+  ).isoWeeksInYear();
+
+  if (firstWeek >= 52) {
     firstWeek = 0;
+  } else if (firstWeek === 1) {
+    firstWeek = 1;
+  } else {
+    firstWeek = firstWeek - 1;
   }
 
-  for (let i = firstWeek + 1; i <= lastWeek; i++) {
+  console.log(
+    firstWeek,
+    moment(new Date(year, month, 1)).isoWeek(),
+    lastWeekOfPreviousYear
+  );
+
+  let out = [];
+  for (let i = firstWeek; i <= lastWeek; i++) {
+    if (i === 0) {
+      out.push(lastWeekOfPreviousYear);
+      continue;
+    }
     out.push(i);
   }
   return out;
@@ -215,9 +233,9 @@ const isDisabled = (day: Date): boolean => {
       <button @click="changeMonth('previous')" class="arrow">
         <i class="fas fa-angle-left"></i>
       </button>
-      <button class="calendar-title">
+      <span class="calendar-title">
         {{ moment(date).format("YYYY - M") }}
-      </button>
+      </span>
       <button @click="changeMonth('next')" class="arrow">
         <i class="fas fa-angle-right"></i>
       </button>
@@ -288,6 +306,15 @@ input[type="reset"] {
   outline: inherit;
 }
 
+button {
+  min-height: 2rem;
+  transition: 0.15s ease-in-out all;
+
+  &:hover {
+    background-color: $color-neutral-50;
+  }
+}
+
 .row.first span {
   display: flex;
   justify-content: center;
@@ -308,13 +335,15 @@ input[type="reset"] {
     button {
       flex: 1;
       transition: 0.2s all linear;
-      &.calendar-title {
-        cursor: default;
-      }
 
       &.arrow:hover {
         background-color: $color-neutral-50;
       }
+    }
+
+    .calendar-title {
+      padding: 1rem;
+      cursor: default;
     }
   }
 }
