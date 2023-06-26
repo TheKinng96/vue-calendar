@@ -85,49 +85,73 @@ const getWeekNumbers = (year: number, month: number) => {
   let firstWeek = moment(new Date(year, month, 1)).isoWeek();
   let lastWeek = moment(new Date(year, month + 1, 0)).isoWeek();
 
+  let firstWeek_ = firstWeek;
   let lastWeekOfPreviousYear = moment(
     new Date(year - 1, month - 1, 0)
   ).isoWeeksInYear();
 
-  if (firstWeek >= 52) {
-    firstWeek = 0;
-  } else if (firstWeek === 1) {
+  if (firstWeek >= 52 || firstWeek == 0) {
     firstWeek = 1;
   } else {
     firstWeek = firstWeek - 1;
   }
 
-  console.log(
-    firstWeek,
-    moment(new Date(year, month, 1)).isoWeek(),
-    lastWeekOfPreviousYear
-  );
-
   let out = [];
-  for (let i = firstWeek; i <= lastWeek; i++) {
-    if (i === 0) {
-      out.push(lastWeekOfPreviousYear);
-      continue;
+  // If last week is smaller than first week
+  if (lastWeek < firstWeek) {
+    for (let i = firstWeek; i <= lastWeekOfPreviousYear; i++) {
+      out.push(i);
     }
-    out.push(i);
+    for (let i = 1; i <= lastWeek; i++) {
+      out.push(i);
+    }
+    return out;
+  } else {
+    for (let i = firstWeek; i <= lastWeek; i++) {
+      if (i === 0) continue;
+      out.push(i);
+    }
   }
+
+  // Adjust for first week for january
+  if (
+    firstWeek_ > 50 &&
+    date.value.getMonth() + 1 === 1 &&
+    firstWeek_ !== lastWeekOfPreviousYear
+  ) {
+    let out_ = [];
+    if (firstWeek_ > lastWeekOfPreviousYear) {
+      out_ = [firstWeek_];
+    } else {
+      for (let i = firstWeek_; i <= lastWeekOfPreviousYear; i++) {
+        out_.push(i);
+      }
+    }
+    out = [...out_, ...out];
+  }
+
   return out;
 };
 
-const getWeekDaysByWeekNumber = (year: number, weekNumber: number) => {
+const getWeekDaysByWeekNumber = (
+  year: number,
+  weekNumber: number,
+  month: number
+) => {
+  let year_ = year;
+  if (weekNumber > 50 && month === 1) {
+    year_ = year - 1;
+  } else if (weekNumber < 5 && month === 12) {
+    year_ = year + 1;
+  }
+
   let weekDate = moment()
+      .year(year_)
       .isoWeek(weekNumber || 1)
       .startOf("week"),
     weekLength = 7,
     result = [],
     otherMonth = 0;
-
-  if (year) {
-    weekDate = moment()
-      .year(year)
-      .isoWeek(weekNumber || 1)
-      .startOf("week");
-  }
 
   while (weekLength--) {
     result.push(weekDate.toDate());
@@ -151,11 +175,14 @@ onMounted(() => {
 });
 
 const updateCalendar = () => {
+  const year = date.value.getFullYear();
+  const month = date.value.getMonth() + 1;
+
   calendar.value = {
-    year: date.value.getFullYear(),
-    month: date.value.getMonth() + 1,
-    weeks: weekNumbers.value.map((weeks) => {
-      return getWeekDaysByWeekNumber(date.value.getFullYear(), weeks);
+    year,
+    month,
+    weeks: weekNumbers.value.map((week) => {
+      return getWeekDaysByWeekNumber(date.value.getFullYear(), week, month);
     }),
   };
 };
@@ -311,7 +338,7 @@ button {
   transition: 0.15s ease-in-out all;
 
   &:hover {
-    background-color: $color-neutral-50;
+    background-color: #bca3e4;
   }
 }
 
@@ -337,7 +364,8 @@ button {
       transition: 0.2s all linear;
 
       &.arrow:hover {
-        background-color: $color-neutral-50;
+        background-color: #bca3e4;
+        color: white;
       }
     }
 
@@ -450,7 +478,8 @@ button {
 
     button {
       &:hover {
-        background-color: $color-primary-50;
+        background-color: #bca3e4;
+        color: white;
       }
     }
   }
