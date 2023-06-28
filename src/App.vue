@@ -53,7 +53,7 @@ const notBefore = ref<Date>();
 .controls {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   gap: 1rem;
   margin-bottom: 1rem;
